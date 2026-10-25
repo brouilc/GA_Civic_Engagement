@@ -1,0 +1,117 @@
+#Date: October 25, 2026
+#Analyst: Beau Brouillette
+#Description: The purpose of this script is to import and format data for my portfolio project on Georgia Civic Engagement
+
+#Define location where files are located.  
+#  Note that this alias will be made generic when the project is uploaded to GitHub to avoid disclosure of file structures
+#  This alias will also enable other users to quickly point to the location where they have stored files rather than making multiple code updates
+DATA_DIR = r"[REDACTED]"
+
+#Load the Pandas package with standard abbreviation pd
+import pandas as pd
+
+#Load csv file containing county-level data on US Census Bureau Citizen Voting Age Population for 2024
+#File was obtained from URL: https://www.census.gov/programs-surveys/decennial-census/about/voting-rights/cvap.html
+df_pop_raw = pd.read_csv(f"{DATA_DIR}/County.csv")
+
+#Subset the total population to only include records in Georgia (based on string logic) where the record is for the total population (i.e. not a subset based on race/ethnicity)
+df_pop_ga = df_pop_raw.loc[
+    (df_pop_raw["geoname"].str.contains(", Georgia", na=False)) & (df_pop_raw["lntitle"] == "Total"),
+    ["geoname", "tot_est", "adu_est", "cit_est", "cvap_est"]
+    ].copy()
+
+#Create a new variable county_name that will simplify joining between datasets
+df_pop_ga["county_name"] = df_pop_ga["geoname"].str.split(" County, Georgia").str[0].str.strip().str.upper()
+
+#Reset the index number so that we can verify it runs from 0 to 158 (one for each of 159 counties)
+df_pop_ga = df_pop_ga.reset_index(drop=True)
+
+with pd.option_context(
+    "display.max_rows", None, "display.max_columns", None
+):
+    print(df_pop_ga)
+
+#Load xlsx file containing voting results from November 2024 Georgia election (i.e. number of people who voted in most recent high-turnout election)
+#File was obtained from URL: https://results.sos.ga.gov/results/public/Georgia/elections/2024NovGen/reports
+df_2024vote_ga_raw = pd.read_excel(f"{DATA_DIR}/Total Votes Results_3675bf50-5eeb-4407-b538-c04b909ccd08.xlsx", sheet_name="County Results")
+
+print(df_2024vote_ga_raw.head())
+
+#Subset the 2024 election results file to include only one record per county - the one that is for president, which is a statewide election (i.e. not a municipal or district race) that contains "Ballots Cast" (which may have non-votes that are excluded from "Total Votes")
+df_2024vote_ga = df_2024vote_ga_raw.loc[
+    (df_2024vote_ga_raw["Ballot Name"] == "Ballots Cast") & (df_2024vote_ga_raw["Office Name"] == "President of the US"),
+    ["County", "Ballot Name", "Total"]
+    ].copy()
+df_2024vote_ga["county_name"] = df_2024vote_ga["County"].str.split(" County").str[0].str.strip().str.upper()
+print(df_2024vote_ga.head())
+
+#Reset the index number so that we can verify it runs from 0 to 158 (one for each of 159 counties)
+df_2024vote_ga = df_2024vote_ga.reset_index(drop=True)
+
+with pd.option_context(
+    "display.max_rows", None, "display.max_columns", None
+):
+    print(df_2024vote_ga)
+
+#Load xlsx file containing active, inactive, and total registered voters in November 2024 (i.e. the total number of people registered to vote in November 2024, per the Georgia Secretary of State)
+#File was obtained from URL: https://sos.ga.gov/election-data-hub
+df_registered_ga_raw = pd.read_excel(f"{DATA_DIR}/Untitled - Pivot table - August 6, 2026.xlsx")
+
+print(df_registered_ga_raw.head())
+
+#Subset the registered voter to include only one record per county (i.e. not the totals row for the state, which has 8,250,190 total voters split between 7,243,511 active and  1,006,679 inactive voters).
+df_registered_ga = df_registered_ga_raw.loc[
+    (df_registered_ga_raw["Voter Status"].notna()) & (df_registered_ga_raw["Voter Status"] != "Totals") & (df_registered_ga_raw["Voter Status"] != "County"),
+    ["Voter Status", "Totals", "Active Voters", "Inactive Voters"]
+    ].copy()
+
+#Rename all of the columns retained in the dataset
+df_registered_ga.columns = ["county_name","total_registered","active_voters","inactive_voters"]
+print(df_registered_ga.head())
+
+#Reset the index number so that we can verify it runs from 0 to 158 (one for each of 159 counties)
+df_registered_ga = df_registered_ga.reset_index(drop=True)
+
+with pd.option_context(
+    "display.max_rows", None, "display.max_columns", None
+):
+    print(df_registered_ga)
+
+#join three datasets based on shared variable county_name
+df_ga2024_engagement_raw = df_pop_ga.merge(df_2024vote_ga, on="county_name", how="left").merge(df_registered_ga, on="county_name", how="left")
+
+with pd.option_context(
+    "display.max_rows", None, "display.max_columns", None
+):
+    print(df_ga2024_engagement_raw)
+
+#Subset the columns to be exported for display in Power BI
+df_ga2024_engagement = df_ga2024_engagement_raw[["geoname", "cvap_est", "active_voters", "Total"]].copy()
+
+#Rename all of the columns retained in the dataset
+df_ga2024_engagement.columns = ["Location","Citizen Voting Age Pop","Nov24 Active Voters","Nov24 Ballots Cast"]
+
+#Update formatting of "Nov24 Ballots Cast" to numeric variable type
+df_ga2024_engagement["Nov24 Active Voters"] = (
+    df_ga2024_engagement["Nov24 Active Voters"]
+    .astype(str)                  # Convert to string to clean safely
+    .str.replace(",", "")         # Remove thousands separator commas
+    .str.strip()                  # Strip extra spaces
+)
+df_ga2024_engagement["Nov24 Active Voters"] = pd.to_numeric(df_ga2024_engagement["Nov24 Active Voters"], errors="coerce")
+
+print(df_ga2024_engagement.head())
+
+#Define voter registration the percentage of voting age population that is registered
+df_ga2024_engagement["Voter Registration"] = (100 * df_ga2024_engagement["Nov24 Active Voters"] / df_ga2024_engagement["Citizen Voting Age Pop"]).round(1)
+
+#Define voter turnout as the percentage of registered voters who cast a ballot in the Nov 2024 election
+df_ga2024_engagement["Voter Turnout"] = (100 * df_ga2024_engagement["Nov24 Ballots Cast"] / df_ga2024_engagement["Nov24 Active Voters"]).round(1)
+
+#Define overall engagement as the percentage of voting age population that cast a ballot in the Nov 2024 election
+df_ga2024_engagement["Overall Engagement"] = (100 * df_ga2024_engagement["Nov24 Ballots Cast"] / df_ga2024_engagement["Citizen Voting Age Pop"]).round(1)
+
+print(df_ga2024_engagement.head())
+
+# Export finalized dataset to excel
+df_ga2024_engagement.to_excel(f"{DATA_DIR}/df_ga2024_engagement.xlsx", index=False)
