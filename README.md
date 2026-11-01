@@ -23,7 +23,7 @@ I am a poll manager for the Glynn County Board of Elections and Registration in 
 - Anaconda (https://www.anaconda.com/download)
 
 ## Features
-- Import files, format data, merge, and export results [([GA(https://github.com/brouilc/GA_Civic_Engagement/blob/main/GA_Civic_Engagement_Data_Prep))](https://github.com/brouilc/GA_Civic_Engagement/blob/main/GA_Civic_Engagement_Data_Prep)
+- Import files, format data, merge, and export results [GA Civic Engagement Data Prep Script](https://github.com/brouilc/GA_Civic_Engagement/blob/main/GA_Civic_Engagement_Data_Prep)
 
 ## Contact
 Beau Brouillette - [LinkedIn](https://www.linkedin.com/in/beau-brouillette) - brouillette.beau@gmail.com
