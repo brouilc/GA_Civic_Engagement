@@ -1,4 +1,4 @@
-#Date: October 25, 2026
+#Date: November 1, 2026
 #Analyst: Beau Brouillette
 #Description: The purpose of this script is to import and format data for my portfolio project on Georgia Civic Engagement
 
@@ -102,10 +102,10 @@ df_ga2024_engagement["Nov24 Active Voters"] = pd.to_numeric(df_ga2024_engagement
 
 print(df_ga2024_engagement.head())
 
-#Define voter registration the percentage of voting age population that is registered
+#Define voter registration the percentage of voting age population that is active
 df_ga2024_engagement["Voter Registration"] = (100 * df_ga2024_engagement["Nov24 Active Voters"] / df_ga2024_engagement["Citizen Voting Age Pop"]).round(1)
 
-#Define voter turnout as the percentage of registered voters who cast a ballot in the Nov 2024 election
+#Define voter turnout as the percentage of active voters who cast a ballot in the Nov 2024 election
 df_ga2024_engagement["Voter Turnout"] = (100 * df_ga2024_engagement["Nov24 Ballots Cast"] / df_ga2024_engagement["Nov24 Active Voters"]).round(1)
 
 #Define overall engagement as the percentage of voting age population that cast a ballot in the Nov 2024 election
@@ -114,4 +114,4 @@ df_ga2024_engagement["Overall Engagement"] = (100 * df_ga2024_engagement["Nov24 
 print(df_ga2024_engagement.head())
 
 # Export finalized dataset to excel
-df_ga2024_engagement.to_excel(f"{DATA_DIR}/df_ga2024_engagement.xlsx", index=False)
+df_ga2024_engagement.to_excel(f"{DATA_DIR}/ga2024_engagement_results.xlsx", index=False)
