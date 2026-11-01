@@ -12,9 +12,6 @@ I am a poll manager for the Glynn County Board of Elections and Registration in 
  - Over 80% of Oconee County's citizen voting age population voted in the election.  
  - This figure is under 40% for Chattahoochee and Wheeler Counties.
 
-![Satisfaction Pre vs Post](PRESENTATION/SFO-CD_Analysis_Summary_Slide4.png)
-
-
 ![Results](Civic_Engagement_Map.png)
 
 ## Data Sources
@@ -26,7 +23,7 @@ I am a poll manager for the Glynn County Board of Elections and Registration in 
 - Anaconda (https://www.anaconda.com/download)
 
 ## Features
-- Import files, format data, merge, and export results (GA_Civic_Engagement_Data_Prep)
+- Import files, format data, merge, and export results [([GA(https://github.com/brouilc/GA_Civic_Engagement/blob/main/GA_Civic_Engagement_Data_Prep))](https://github.com/brouilc/GA_Civic_Engagement/blob/main/GA_Civic_Engagement_Data_Prep)
 
 ## Contact
 Beau Brouillette - [LinkedIn](https://www.linkedin.com/in/beau-brouillette) - brouillette.beau@gmail.com
